@@ -14,6 +14,9 @@ class MinecraftSpeedTimer {
   /** @var int */
   private $current_timer_id = 0;
 
+  /** @var int */
+  private $pause_timestamp = null;
+
   /** @var array */
   private $timer = array(
     1 => ['name' => 'Gesamt'],
@@ -40,7 +43,7 @@ class MinecraftSpeedTimer {
     $this->_startNewTimer();
 
     while (1) {
-      $this->_outputDuration();
+      $this->_outputDuration($this->current_timer_id);
 
       $key = $this->_getKeyStroke();
 
@@ -50,9 +53,15 @@ class MinecraftSpeedTimer {
         break;
       }
 
+      // new Timer
       if ($key == 10) {
         echo PHP_EOL;
         $this->_startNewTimer();
+      }
+
+      // pause
+      if ($key == 112) {
+        $this->_toggleTimer();
       }
     }
   }
@@ -86,8 +95,7 @@ class MinecraftSpeedTimer {
     system('stty sane');
 
     echo PHP_EOL;
-    $this->current_timer_id = 1;
-    $this->_outputDuration();
+    $this->_outputDuration(1);
     echo PHP_EOL;
   }
 
@@ -125,16 +133,71 @@ class MinecraftSpeedTimer {
 
 
   /**
-   * Schreibt die Laufzeit auf die Standardausgabe
+   * Pause or unpause timer
+   * 
+   * @return void
+   */
+  private function _toggleTimer() {
+    if (is_null($this->pause_timestamp)) {
+      $this->pause_timestamp = time();
+      return;
+    }
+
+    $paused_duration = time() - $this->pause_timestamp;
+
+    // current timer
+    $this->_addPausedDuration($this->current_timer_id, $paused_duration);
+
+    // total timer
+    $this->_addPausedDuration(1, $paused_duration);
+
+    $this->pause_timestamp = null;
+  }
+
+
+
+  /**
+   * Add paused duration to timer
+   *
+   * @param int $timer_id Timer Id
+   * @param int $duration Duration
    *
    * @return void
    */
-  private function _outputDuration() {
-    $timer = $this->timer[$this->current_timer_id];
-    $dt = new DateTime();
-    $dt->add(new DateInterval('PT' . (time() - $timer['start']) . 'S'));
-    $duration = $dt->diff(new DateTime());
-    printf("\r" . $timer['name'] . " %s", $duration->format('%I:%S'));
+  private function _addPausedDuration(int $timer_id, int $duration) {
+    if (!isset($this->timer[$timer_id]['paused_duration'])) {
+      $this->timer[$timer_id]['paused_duration'] = 0;
+    }
+
+    $this->timer[$timer_id]['paused_duration'] += $duration;
+  }
+
+
+
+  /**
+   * Write timer duration to standard output
+   *
+   * @param int $timer_id Timer Id
+   * @return void
+   */
+  private function _outputDuration(int $timer_id) {
+    if (!is_null($this->pause_timestamp)) {
+      $duration = $this->pause_timestamp - $this->timer[$timer_id]['start'];
+      $post_output_text = ' paused';
+
+    } else {
+      $duration = time() - $this->timer[$timer_id]['start'];
+      $post_output_text = '';
+    }
+
+    if (isset($this->timer[$timer_id]['paused_duration'])) {
+      $duration -= $this->timer[$timer_id]['paused_duration'];
+    }
+
+    printf(
+      "\r\033[K" . $this->timer[$timer_id]['name'] . " %s" . $post_output_text, 
+      (new DateInterval('PT' . $duration . 'S'))->format('%I:%S')
+    );
   }
 
 }
