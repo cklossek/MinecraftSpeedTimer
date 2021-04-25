@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/usr/bin/env php
 <?php
 
 namespace cklossek\MinecraftSpeedTimer;
@@ -139,5 +139,4 @@ class MinecraftSpeedTimer {
 
 }
 
-$class = new MinecraftSpeedTimer();
-$class->run();
+(new MinecraftSpeedTimer())->run();
