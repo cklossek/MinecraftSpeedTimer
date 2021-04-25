@@ -60,7 +60,7 @@ class MinecraftSpeedTimer {
       }
 
       // pause
-      if ($key == 112) {
+      if ($key == 32) {
         $this->_toggleTimer();
       }
     }
