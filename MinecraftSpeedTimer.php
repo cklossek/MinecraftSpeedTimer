@@ -196,7 +196,7 @@ class MinecraftSpeedTimer {
 
     printf(
       "\r\033[K" . $this->timer[$timer_id]['name'] . " %s" . $post_output_text, 
-      (new DateInterval('PT' . $duration . 'S'))->format('%I:%S')
+      (new DateInterval('PT' . $duration . 'S'))->format('%H:%I:%S')
     );
   }
 
