@@ -54,7 +54,7 @@ class MinecraftSpeedTimer {
       }
 
       // new Timer
-      if ($key == 10) {
+      if ($key == 10 && is_null($this->pause_timestamp)) {
         echo PHP_EOL;
         $this->_startNewTimer();
       }
@@ -194,10 +194,11 @@ class MinecraftSpeedTimer {
       $duration -= $this->timer[$timer_id]['paused_duration'];
     }
 
-    printf(
-      "\r\033[K" . $this->timer[$timer_id]['name'] . " %s" . $post_output_text, 
-      (new DateInterval('PT' . $duration . 'S'))->format('%H:%I:%S')
-    );
+    $time1 = new DateTime();
+    $time2 = clone $time1;
+    $time2->add(new DateInterval('PT' . $duration . 'S'));
+
+    printf("\r\033[K" . $this->timer[$timer_id]['name'] . " %s" . $post_output_text, $time1->diff($time2)->format('%H:%I:%S'));
   }
 
 }
